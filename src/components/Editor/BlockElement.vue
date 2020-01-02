@@ -6,26 +6,33 @@ export default {
   },
   render(createElement) {
     const textElement = createElement(this.block.elemType || 'div', {
-        class: 'column',
-        style: this.block.style
+        class: 'block',
+        style: [
+          this.block.style,
+          { fontSize: `${this.block.width/10}vw` }
+        ]
       },
       this.block.value
     );
 
     const imageElement = createElement(this.block.elemType || 'div', {
-        class: 'column',
-        style: this.block.style,
-        attrs: this.block.elemType == 'img' ? {
-          src: this.block.src,
-          alt: this.block.value
-        } : null,
+        class: 'block',
+        style: [
+          this.block.style
+        ],
+        attrs: this.block.attrs ? this.block.attrs : null,
       }
     );
 
-    return this.block.type === 'text' ? textElement : imageElement
+    return this.block.type === 'text' ?  textElement : imageElement;
   }
 }
 </script>
 
 <style lang="scss">
+.block {
+  * {
+    font-size: 100%;
+  }
+}
 </style>

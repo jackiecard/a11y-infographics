@@ -1,16 +1,16 @@
 <template>
   <div id="app">
-    <Editor/>
+    <FlowEditor/>
   </div>
 </template>
 
 <script>
-import Editor from './components/Editor/Editor.vue'
+import FlowEditor from './components/Flow/FlowEditor.vue'
 
 export default {
   name: 'app',
   components: {
-    Editor
+    FlowEditor
   }
 }
 </script>

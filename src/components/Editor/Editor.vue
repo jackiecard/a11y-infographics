@@ -1,68 +1,33 @@
 <script>
+import { mapGetters, mapActions } from 'vuex'
 import EditorCanvas from './EditorCanvas.vue'
 export default {
   name: 'Editor',
   components: {
     EditorCanvas
   },
-  data() {
-    return {
-      structure: {
-        sections: [
-          {
-            id: "id-1",
-            columns: [
-              {
-                id: 'column-11',
-                style: {
-                  backgroundColor: 'red',
-                },
-                blocks: [
-                  {
-                    id: 'block-111',
-                    type: 'text',
-                    elemType: 'h1',
-                    value: 'Infographics',
-                    style: {
-                      textAlign: 'center',
-                      width: '100%',
-                      padding: '10px'
-                    }
-                  },
-                  {
-                    id: 'block-112',
-                    type: 'text',
-                    elemType: 'h2',
-                    value: 'Infographics col 2',
-                    style: {
-                      textAlign: 'center',
-                      width: '100%',
-                      padding: '10px'
-                    }
-                  },
-                  {
-                    id: 'block-113',
-                    type: 'img',
-                    elemType: 'img',
-                    src: 'https://i.imgur.com/hQRPNOF.png',
-                    value: 'Infographics col 2',
-                    style: {
-                      textAlign: 'center',
-                      padding: '10px'
-                    }
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    }
+  computed: mapGetters([
+    'projectName',
+    'structure',
+  ]),
+  methods: {
+    ...mapActions([
+      'setProjectName',
+      'setStructure',
+      'removeSection',
+      'undo',
+      'addSection',
+      'duplicateSection'
+    ])
   },
   render(createElement) {
     return createElement('EditorCanvas', {
         props: {
-          sections: this.structure.sections
+          sections: this.structure.sections,
+          removeSection: this.removeSection,
+          undoAction: this.undo,
+          addSection: this.addSection,
+          duplicateSection: this.duplicateSection
         }
       }
     );
