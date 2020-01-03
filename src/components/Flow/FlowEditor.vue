@@ -33,19 +33,26 @@
           :h="block.coordinates.height"
           :minHeight="50" 
           :minWidth="50"
-          :grid="[20,20]"
+          :grid="[10,10]"
           :handles="['tl','tr','br','bl']"
           :style="{ width: block.coordinates.width + '%', height: block.coordinates.height + '%', left: block.coordinates.left + '%', top: block.coordinates.top + '%', 'z-index': block.config.zIndex }"
+          @activated="active = block"
           @resizing="(left, top, width, height) => onResizing(block.id, width, height)"
           @dragging="(left, top) => onDragging(block.id, left, top)">
 
-          <button class="btn btn--handle">X</button>
-          <button class="btn btn--layer-up" @click="layerUp(block.id, block.coordinates.zIndex)">U</button>
-          <button class="btn btn--layer-down" @click="layerDown(block.id, block.coordinates.zIndex)">D</button>
+          <div class="control">
+            <button class="btn btn--handle">X</button>
+            <button class="btn btn--layer-up" @click="layerUp(block.id, block.config.zIndex)">U</button>
+            <button class="btn btn--layer-down" @click="layerDown(block.id, block.config.zIndex)">D</button>
+          </div>
           <BlockElement :block="block"></BlockElement>
         </vue-draggable-resizable>
       </section>
     </div>
+
+    <!-- <div class="config">
+      {{active}}
+    </div> -->
   </div>
 </template>
 
@@ -61,7 +68,8 @@ export default {
   },
   data() {
     return {
-      showCanvas: true
+      showCanvas: true,
+      active: null
     }
   },
   computed: {
@@ -78,6 +86,7 @@ export default {
     ...mapActions([
       'setProjectName',
       'setBlockCooordinates',
+      'setBlockConfig',
       'render'
     ]),
     onDragging(id, left, top) {
@@ -105,6 +114,7 @@ export default {
       })
     },
     layerUp(id, z) {
+      console.log(id, z)
       this.setBlockConfig({
         id: id,
         config: {
@@ -154,9 +164,22 @@ export default {
 }
 
 .draggable.active {
-  .btn {
+  .control {
     display: block;
   }
+}
+
+.control {
+  display: none;
+}
+
+.config {
+  position: absolute;
+  z-index: 999;
+  width: 190px;
+  top: 0;
+  right: 0;
+  background: white;
 }
 
 .btn {
@@ -164,7 +187,6 @@ export default {
   border: 1px solid black;
   width: 40px;
   height: 40px;
-  display: none;
 
   &--handle {
     right: 0;

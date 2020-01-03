@@ -118,6 +118,15 @@ const mutations = {
       return b
     });
   },
+  setBlockConfig(state, payload) {
+    const config = Object.assign({}, state.blocks.find(block => block.id === payload.id).config, payload.config)
+    state.blocks = state.blocks.map(b => {
+      if(b.id === payload.id) {
+        b.config = config;
+      }
+      return b
+    });
+  },
   render(state) {
     state.rendered = render(state);
   }
@@ -142,6 +151,10 @@ const actions = {
   },
   render: ({ commit }) => {
     commit("render")
+  },
+  setBlockConfig: ({ commit }, payload) => {
+    commit("setBackupBlocks")
+    commit("setBlockConfig", payload)
   }
 };
 
@@ -196,15 +209,17 @@ const render = (state) => {
 
       if (block.type === 'text') {
         sections += `
-          <${block.elemType} class="${block.id}">
+          <${block.elemType} 
+            class="${block.id}">
             ${block.value}
           </${block.elemType} >`
       }
       if (block.type === 'img') {
         sections += `
           <${block.elemType} 
-            class="${block.id}"
-            src="${block.attrs.src}" 
+            class="${block.id} ai-lazy"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNcsXJlPQAGdgJ7LmMeawAAAABJRU5ErkJggg=="
+            data-src="${block.attrs.src}" 
             alt="${block.attrs.alt}" />`
       }
     })
@@ -223,6 +238,18 @@ const render = (state) => {
     }
     * {
       box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    .block {
+      --block-top: 0;
+      --block-bottom: 0;
+      --block-width: 0;
+      --block-height: 0;
+      top: var(--block-top);
+      left: var(--block-left);
+      width: var(--block-width);
+      height: var(--block-height);
     }
   `
   
@@ -233,6 +260,26 @@ const render = (state) => {
     <style>
       ${styles}
     </style>
+    <script>
+      "use strict";
+      document.addEventListener("DOMContentLoaded", function () {
+        var imageObserver = new IntersectionObserver(function (entries, imgObserver) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              var lazyImage = entry.target;
+              console.log("lazy loading ", lazyImage);
+              lazyImage.src = lazyImage.dataset.src;
+              lazyImage.classList.remove("ai-lazy");
+              imgObserver.unobserve(lazyImage);
+            }
+          });
+        });
+        var arr = document.querySelectorAll('img.ai-lazy');
+        arr.forEach(function (v) {
+          imageObserver.observe(v);
+        });
+      });
+    </script>
   `
 
   console.log(rendered);
