@@ -179,47 +179,59 @@ const styleString = (style, coordinates) => {
 
 const render = (state) => {
   let sections = '';
+  let styles = '';
 
   state.sections.forEach(section => {
     sections += `<section>`;
     const sectionBlocks = state.blocks.filter(block => block.sectionId === section.id)
     sectionBlocks.forEach(block => {
+      styles += `
+        .${block.id} {
+          ${block.type === 'text' ? `font-size : ${block.coordinates.width / 10}vw;` : ''}
+          ${styleString(block.style)} 
+          ${styleString(block.config)}
+          ${styleString(block.coordinates, true)}
+        }
+      `;
+
       if (block.type === 'text') {
         sections += `
-          <${block.elemType} 
-            style="
-              ${styleString(block.style)} 
-              ${styleString(block.config)}
-              ${styleString(block.coordinates, true)}
-            ">
+          <${block.elemType} class="${block.id}">
             ${block.value}
           </${block.elemType} >`
       }
       if (block.type === 'img') {
-        sections += `<${block.elemType} 
-          style="
-            ${styleString(block.style)}
-            ${styleString(block.config)}
-            ${styleString(block.coordinates, true)}
-          " 
-          src="${block.attrs.src}" 
-          alt="${block.attrs.alt}" />`
+        sections += `
+          <${block.elemType} 
+            class="${block.id}"
+            src="${block.attrs.src}" 
+            alt="${block.attrs.alt}" />`
       }
     })
     sections += `</section>`;
   });
-  const rendered = `
-    <div class="a11y-infographics" 
-      style="--canvas-aspect-ratio: ${state.containerWidth} / ${state.containerHeight};
-        ${styleString(state.containerStyle)}">
-      ${sections}
-    </div>
-    <style>
+
+  styles += `
+    .a11y-infographics{
+      --canvas-aspect-ratio: ${state.containerWidth} / ${state.containerHeight};
+      ${styleString(state.containerStyle)}
+    }
     .a11y-infographics::before {
       content: "";
       display: block;
       padding-bottom: calc(100% / (var(--canvas-aspect-ratio)));
     }
+    * {
+      box-sizing: border-box;
+    }
+  `
+  
+  const rendered = `
+    <div class="a11y-infographics">
+      ${sections}
+    </div>
+    <style>
+      ${styles}
     </style>
   `
 

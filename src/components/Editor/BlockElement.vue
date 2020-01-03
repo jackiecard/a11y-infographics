@@ -10,7 +10,7 @@ export default {
         class: 'block',
         style: !this.hideStyles ? [
           this.block.style,
-          { fontSize: `${this.block.config.width/10}vw` }
+          { fontSize: `${this.block.coordinates.width/10}vw` }
         ] : null
       },
       this.block.value
