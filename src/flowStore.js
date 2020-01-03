@@ -10,12 +10,13 @@ const state = {
   containerWidth: 800,
   containerHeight: 1000,
   containerStyle: {
+    position: 'relative',
     backgroundColor: 'pink',
     border: '1px solid black'
   },
   sections: [
     {
-      id: 'section-1'
+      id: 'section-1',
     }
   ],
   blocks: [
@@ -25,11 +26,16 @@ const state = {
       type: 'text',
       elemType: 'h1',
       value: 'Heading Level 1',
-      width: 50,
-      height: 20,
-      x: 20,
-      y: 20,
-      zIndex: 1,
+      config: {
+        position: 'absolute',
+        zIndex: 1,
+      },
+      coordinates: {
+        width: 50,
+        height: 20,
+        top: 20,
+        left: 20,
+      },
       style: {
         backgroundColor: 'yellow'
       }
@@ -40,23 +46,47 @@ const state = {
       type: 'img',
       elemType: 'img',
       value: 'Infographics col 2',
-      width: 30,
-      height: 30,
-      x: 0,
-      y: 0,
-      zIndex: 1,
+      config: {
+        position: 'absolute',
+        zIndex: 1,
+      },
+      coordinates: {
+        width: 30,
+        height: 30,
+        top: 0,
+        left: 0,
+      },
       attrs: {
         src: 'https://i.imgur.com/hQRPNOF.png',
         alt: 'Infographics col 2'
       },
       style: {
-        backgroundColor: 'pink',
-        width: '100%',
-        height: '100%'
+        backgroundColor: 'pink'
+      }
+    },
+    {
+      id: 'block-3',
+      sectionId: 'section-1',
+      type: 'text',
+      elemType: 'p',
+      value: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. ',
+      config: {
+        position: 'absolute',
+        zIndex: 1,
+      },
+      coordinates: {
+        width: 50,
+        height: 20,
+        top: 50,
+        left: 20,
+      },
+      style: {
+        backgroundColor: 'white'
       }
     },
   ],
-  backupBlocks: []
+  backupBlocks: [],
+  rendered: ''
 };
 
 const structureWithoutSection = (list, id) => {
@@ -79,14 +109,17 @@ const mutations = {
   undo(state) {
     state.blocks = state.backupBlocks;
   },
-  setBlockConfig(state, payload) {
-    const block = Object.assign({}, state.blocks.find(block => block.id === payload.id), payload.config)
+  setBlockCooordinates(state, payload) {
+    const coordinates = Object.assign({}, state.blocks.find(block => block.id === payload.id).coordinates, payload.coordinates)
     state.blocks = state.blocks.map(b => {
       if(b.id === payload.id) {
-        b = block;
+        b.coordinates = coordinates;
       }
       return b
     });
+  },
+  render(state) {
+    state.rendered = render(state);
   }
 };
 
@@ -103,9 +136,12 @@ const actions = {
   undo: ({ commit }) => {
     commit("undo")
   },
-  setBlockConfig: ({ commit }, payload) => {
+  setBlockCooordinates: ({ commit }, payload) => {
     commit("setBackupBlocks")
-    commit("setBlockConfig", payload)
+    commit("setBlockCooordinates", payload)
+  },
+  render: ({ commit }) => {
+    commit("render")
   }
 };
 
@@ -130,3 +166,62 @@ export default new Vuex.Store({
   mutations,
   // plugins: [vuexPersist.plugin]
 });
+
+const kebab = (prop) => { 
+  return prop.replace(/[A-Z]/g, match => `-${match.toLowerCase()}`) 
+};
+
+const styleString = (style, coordinates) => {
+  return Object.entries(style).reduce((styleString, [propName, propValue]) => {
+    return `${styleString}${kebab(propName)}:${propValue}${coordinates ? '%' : ''};`;
+  }, '')
+};
+
+const render = (state) => {
+  let sections = '';
+
+  state.sections.forEach(section => {
+    sections += `<section>`;
+    const sectionBlocks = state.blocks.filter(block => block.sectionId === section.id)
+    sectionBlocks.forEach(block => {
+      if (block.type === 'text') {
+        sections += `
+          <${block.elemType} 
+            style="
+              ${styleString(block.style)} 
+              ${styleString(block.config)}
+              ${styleString(block.coordinates, true)}
+            ">
+            ${block.value}
+          </${block.elemType} >`
+      }
+      if (block.type === 'img') {
+        sections += `<${block.elemType} 
+          style="
+            ${styleString(block.style)}
+            ${styleString(block.config)}
+            ${styleString(block.coordinates, true)}
+          " 
+          src="${block.attrs.src}" 
+          alt="${block.attrs.alt}" />`
+      }
+    })
+    sections += `</section>`;
+  });
+  const rendered = `
+    <div class="a11y-infographics" 
+      style="--canvas-aspect-ratio: ${state.containerWidth} / ${state.containerHeight};
+        ${styleString(state.containerStyle)}">
+      ${sections}
+    </div>
+    <style>
+    .a11y-infographics::before {
+      content: "";
+      display: block;
+      padding-bottom: calc(100% / (var(--canvas-aspect-ratio)));
+    }
+    </style>
+  `
+
+  console.log(rendered);
+}

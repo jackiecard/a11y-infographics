@@ -1,27 +1,51 @@
 <template>
-  <div class="wrapper"
-    :style="[containerStyle, {'--wrapper-aspect-ratio:': `${containerWidth} / ${containerHeight}` }]" 
-    ref="parent">
-    <section v-for="(section, k) in sections" :key="k">
-      <vue-draggable-resizable 
-        v-for="(block, i) in sectionBlocks(section.id)"
-        :key="i"
-        :w="block.width" 
-        :h="block.height"
-        :minHeight="50" 
-        :minWidth="50"
-        :grid="[20,20]"
-        :handles="['tl','tr','br','bl']"
-        :style="{ width: block.width + '%', height: block.height + '%', left: block.x + '%', top: block.y + '%', 'z-index': block.zIndex }"
-        @resizing="(left, top, width, height) => onResizing(block.id, width, height)"
-        @dragging="(left, top) => onDragging(block.id, left, top)">
+  <div>
+    <button @click="toggleCanvas()">Show Structure</button>
+    <button @click="render()">Render</button>
+    <div class="structure"
+      v-if="!showCanvas">
+      <section 
+        v-for="(section, k) in sections" 
+        :key="k"
+        >
+        <ul>
+          <li 
+            v-for="(block, i) in sectionBlocks(section.id)"
+            :key="i">
+            <BlockElement :block="block" :hide-styles="true"></BlockElement>
+          </li>
+        </ul>
+      </section>
+    </div>
+    <div class="canvas"
+      v-if="showCanvas"
+      :style="[containerStyle, {'--canvas-aspect-ratio:': `${containerWidth} / ${containerHeight}` }]" 
+      ref="parent">
+      <section 
+        v-for="(section, k) in sections" 
+        :key="k"
+        class="section"
+        >
+        <vue-draggable-resizable 
+          v-for="(block, i) in sectionBlocks(section.id)"
+          :key="i"
+          :w="block.coordinates.width" 
+          :h="block.coordinates.height"
+          :minHeight="50" 
+          :minWidth="50"
+          :grid="[20,20]"
+          :handles="['tl','tr','br','bl']"
+          :style="{ width: block.coordinates.width + '%', height: block.coordinates.height + '%', left: block.coordinates.left + '%', top: block.coordinates.top + '%', 'z-index': block.config.zIndex }"
+          @resizing="(left, top, width, height) => onResizing(block.id, width, height)"
+          @dragging="(left, top) => onDragging(block.id, left, top)">
 
-        <button class="btn btn--handle">X</button>
-        <button class="btn btn--layer-up" @click="layerUp(block.id, block.zIndex)">U</button>
-        <button class="btn btn--layer-down" @click="layerDown(block.id, block.zIndex)">D</button>
-        <BlockElement :block="block"></BlockElement>
-      </vue-draggable-resizable>
-    </section>
+          <button class="btn btn--handle">X</button>
+          <button class="btn btn--layer-up" @click="layerUp(block.id, block.coordinates.zIndex)">U</button>
+          <button class="btn btn--layer-down" @click="layerDown(block.id, block.coordinates.zIndex)">D</button>
+          <BlockElement :block="block"></BlockElement>
+        </vue-draggable-resizable>
+      </section>
+    </div>
   </div>
 </template>
 
@@ -34,6 +58,11 @@ export default {
   components: {
     VueDraggableResizable,
     BlockElement
+  },
+  data() {
+    return {
+      showCanvas: true
+    }
   },
   computed: {
     ...mapGetters([
@@ -48,17 +77,18 @@ export default {
   methods: {
     ...mapActions([
       'setProjectName',
-      'setBlockConfig'
+      'setBlockCooordinates',
+      'render'
     ]),
     onDragging(id, left, top) {
       let x = (left / this.$refs.parent.offsetWidth) * 100;
       let y = (top / this.$refs.parent.offsetHeight) * 100;
 
-      this.setBlockConfig({
+      this.setBlockCooordinates({
         id: id,
-        config: {
-          x: x,
-          y: y
+        coordinates: {
+          left: x,
+          top: y
         }
       })
     },
@@ -66,9 +96,9 @@ export default {
       let w = (width / this.$refs.parent.offsetWidth) * 100;
       let h = (height / this.$refs.parent.offsetHeight) * 100;
 
-      this.setBlockConfig({
+      this.setBlockCooordinates({
         id: id,
-        config: {
+        coordinates: {
           width: w,
           height: h
         }
@@ -92,6 +122,9 @@ export default {
     },
     sectionBlocks(sectionId) {
       return this.blocks.filter(block => block.sectionId === sectionId)
+    },
+    toggleCanvas() {
+      this.showCanvas = !this.showCanvas
     }
   },
 }
@@ -102,14 +135,18 @@ export default {
   margin: 40px 0 0;
 }
 
-.wrapper {
-  --wrapper-aspect-ratio: 1/1;
+.canvas {
+  --canvas-aspect-ratio: 1/1;
   position: relative;
 
   &::before {
    content: "";
    display: block;
-   padding-bottom: calc(100% / (var(--wrapper-aspect-ratio)));
+   padding-bottom: calc(100% / (var(--canvas-aspect-ratio)));
+ }
+
+ p {
+   margin: 0;
  }
 }
 
@@ -136,6 +173,14 @@ export default {
 
   &--layer-down {
     right: 80px;
+  }
+}
+
+.structure {
+  ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
   }
 }
 </style>
