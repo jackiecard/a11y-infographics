@@ -7,8 +7,14 @@ Vue.use(Vuex);
 
 const state = {
   projectName: "Awesome Infographic",
-  containerWidth: 800,
-  containerHeight: 1000,
+  containerDesktop: {
+    width: 800,
+    height: 1000,
+  },
+  containerMobile: {
+    width: 400,
+    height: 1000,
+  },
   containerStyle: {
     position: 'relative',
     backgroundColor: 'pink',
@@ -31,13 +37,20 @@ const state = {
         zIndex: 1,
       },
       coordinates: {
-        width: 50,
-        height: 20,
-        top: 20,
-        left: 20,
+        width: 47,
+        height: 5.8,
+        top: 4,
+        left: 27,
+      },
+      coordinatesMobile: {
+        width: 90,
+        height: 10,
+        top: 4,
+        left: 5,
       },
       style: {
-        backgroundColor: 'yellow'
+        backgroundColor: 'yellow',
+        fontFamily: 'Verdana'
       }
     },
     {
@@ -48,20 +61,27 @@ const state = {
       value: 'Infographics col 2',
       config: {
         position: 'absolute',
-        zIndex: 1,
+        zIndex: 1
       },
       coordinates: {
         width: 30,
         height: 30,
-        top: 0,
-        left: 0,
+        top: 15,
+        left: 35,
+      },
+      coordinatesMobile: {
+        width: 90,
+        height: 40,
+        top: 15,
+        left: 5,
       },
       attrs: {
         src: 'https://i.imgur.com/hQRPNOF.png',
         alt: 'Infographics col 2'
       },
       style: {
-        backgroundColor: 'pink'
+        backgroundColor: 'pink',
+        fontFamily: 'Verdana'
       }
     },
     {
@@ -75,18 +95,26 @@ const state = {
         zIndex: 1,
       },
       coordinates: {
-        width: 50,
-        height: 20,
+        width: 63,
+        height: 16,
         top: 50,
         left: 20,
       },
+      coordinatesMobile: {
+        width: 90,
+        height: 20,
+        top: 65,
+        left: 5,
+      },
       style: {
-        backgroundColor: 'white'
+        backgroundColor: 'white',
+        fontFamily: 'Verdana'
       }
     },
   ],
   backupBlocks: [],
-  rendered: ''
+  rendered: '',
+  mobileMode: false
 };
 
 const structureWithoutSection = (list, id) => {
@@ -96,6 +124,12 @@ const structureWithoutSection = (list, id) => {
 const mutations = {
   setProjectName(state, payload) {
     state.projectName = payload;
+  },
+  setContainerDesktop(state, payload) {
+    state.containerDesktop = Object.assign({}, state.containerDesktop, payload);
+  },
+  setContainerMobile(state, payload) {
+    state.containerMobile = Object.assign({}, state.containerMobile, payload);
   },
   setBackupBlocks(state) {
     state.backupBlocks = state.blocks;
@@ -110,10 +144,15 @@ const mutations = {
     state.blocks = state.backupBlocks;
   },
   setBlockCooordinates(state, payload) {
-    const coordinates = Object.assign({}, state.blocks.find(block => block.id === payload.id).coordinates, payload.coordinates)
+    const block = state.mobileMode ? state.blocks.find(block => block.id === payload.id).coordinatesMobile : state.blocks.find(block => block.id === payload.id).coordinates
+    const coordinates = Object.assign({}, block, payload.coordinates)
+    console.log(coordinates)
     state.blocks = state.blocks.map(b => {
-      if(b.id === payload.id) {
+      if(b.id === payload.id && !state.mobileMode) {
         b.coordinates = coordinates;
+      }
+      else if (b.id === payload.id && state.mobileMode) {
+        b.coordinatesMobile = coordinates;
       }
       return b
     });
@@ -129,6 +168,10 @@ const mutations = {
   },
   render(state) {
     state.rendered = render(state);
+  },
+  setMobileMode(state, payload) {
+    console.log('setMobileMode', payload)
+    state.mobileMode = payload;
   }
 };
 
@@ -155,16 +198,26 @@ const actions = {
   setBlockConfig: ({ commit }, payload) => {
     commit("setBackupBlocks")
     commit("setBlockConfig", payload)
-  }
+  },
+  setContainerDesktop: ({ commit }, payload) => {
+    commit("setContainerDesktop", payload)
+  },
+  setContainerMobile: ({ commit }, payload) => {
+    commit("setContainerMobile", payload)
+  },
+  setMobileMode: ({ commit }, payload) => {
+    commit("setMobileMode", payload)
+  },
 };
 
 const getters = {
   projectName: state => state.projectName,
   blocks: state => state.blocks,
-  containerWidth: state => state.containerWidth,
-  containerHeight: state => state.containerHeight,
   containerStyle: state => state.containerStyle,
+  containerDesktop: state => state.containerDesktop,
+  containerMobile: state => state.containerMobile,
   sections: state => state.sections,
+  mobileMode: state => state.mobileMode
 };
 
 // const vuexPersist = new VuexPersist({
@@ -200,7 +253,7 @@ const render = (state) => {
     sectionBlocks.forEach(block => {
       styles += `
         .${block.id} {
-          ${block.type === 'text' ? `font-size : ${block.coordinates.width / 10}vw;` : ''}
+          ${block.type === 'text' ? `font-size : ${block.coordinates.width / 20}vw;` : ''}
           ${styleString(block.style)} 
           ${styleString(block.config)}
           ${styleString(block.coordinates, true)}
@@ -228,9 +281,14 @@ const render = (state) => {
 
   styles += `
     .a11y-infographics{
-      --canvas-aspect-ratio: ${state.containerWidth} / ${state.containerHeight};
+      --canvas-aspect-ratio: ${state.containerDesktop.width} / ${state.containerDesktop.height};
       ${styleString(state.containerStyle)}
     }
+
+    @media (max-width: 600px) {
+      --canvas-aspect-ratio: ${state.containerMobile.width} / ${state.containerMobile.height};
+    }
+
     .a11y-infographics::before {
       content: "";
       display: block;

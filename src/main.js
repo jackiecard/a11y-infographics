@@ -5,7 +5,9 @@ import VueDraggableResizable from 'vue-draggable-resizable'
 
 // optionally import default styles
 import 'vue-draggable-resizable/dist/VueDraggableResizable.css'
+import vClickOutside from 'v-click-outside'
 
+Vue.use(vClickOutside)
 Vue.component('vue-draggable-resizable', VueDraggableResizable)
 
 Vue.config.productionTip = true;

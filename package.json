@@ -11,6 +11,7 @@
     "core-js": "^3.4.4",
     "eslint-loader": "^2.1.2",
     "sass-loader": "^8.0.0",
+    "v-click-outside": "^3.0.0",
     "vue": "^2.6.10",
     "vue-draggable-resizable": "^2.1.0",
     "vue-mq": "^1.0.1",
