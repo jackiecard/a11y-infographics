@@ -123,7 +123,7 @@ export default {
       'mobileMode'
     ]),
     containerSize() {
-      return `${this.isMobile ? this.containerMobile.width : this.containerDesktop.width} / ${this.isMobile ? this.containerMobile.height : this.containerDesktop.height}`
+      return `${this.mobileMode ? this.containerMobile.width : this.containerDesktop.width} / ${this.mobileMode ? this.containerMobile.height : this.containerDesktop.height}`
     }
   },
   methods: {

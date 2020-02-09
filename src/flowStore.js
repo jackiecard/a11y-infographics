@@ -1,5 +1,6 @@
 import Vue from "vue";
 import Vuex from "vuex";
+import { render } from "./scripts/render";
 
 // import VuexPersist from "vuex-persist";
 
@@ -146,7 +147,6 @@ const mutations = {
   setBlockCooordinates(state, payload) {
     const block = state.mobileMode ? state.blocks.find(block => block.id === payload.id).coordinatesMobile : state.blocks.find(block => block.id === payload.id).coordinates
     const coordinates = Object.assign({}, block, payload.coordinates)
-    console.log(coordinates)
     state.blocks = state.blocks.map(b => {
       if(b.id === payload.id && !state.mobileMode) {
         b.coordinates = coordinates;
@@ -170,7 +170,6 @@ const mutations = {
     state.rendered = render(state);
   },
   setMobileMode(state, payload) {
-    console.log('setMobileMode', payload)
     state.mobileMode = payload;
   }
 };
@@ -232,113 +231,3 @@ export default new Vuex.Store({
   mutations,
   // plugins: [vuexPersist.plugin]
 });
-
-const kebab = (prop) => { 
-  return prop.replace(/[A-Z]/g, match => `-${match.toLowerCase()}`) 
-};
-
-const styleString = (style, coordinates) => {
-  return Object.entries(style).reduce((styleString, [propName, propValue]) => {
-    return `${styleString}${kebab(propName)}:${propValue}${coordinates ? '%' : ''};`;
-  }, '')
-};
-
-const render = (state) => {
-  let sections = '';
-  let styles = '';
-
-  state.sections.forEach(section => {
-    sections += `<section>`;
-    const sectionBlocks = state.blocks.filter(block => block.sectionId === section.id)
-    sectionBlocks.forEach(block => {
-      styles += `
-        .${block.id} {
-          ${block.type === 'text' ? `font-size : ${block.coordinates.width / 20}vw;` : ''}
-          ${styleString(block.style)} 
-          ${styleString(block.config)}
-          ${styleString(block.coordinates, true)}
-        }
-      `;
-
-      if (block.type === 'text') {
-        sections += `
-          <${block.elemType} 
-            class="${block.id}">
-            ${block.value}
-          </${block.elemType} >`
-      }
-      if (block.type === 'img') {
-        sections += `
-          <${block.elemType} 
-            class="${block.id} ai-lazy"
-            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNcsXJlPQAGdgJ7LmMeawAAAABJRU5ErkJggg=="
-            data-src="${block.attrs.src}" 
-            alt="${block.attrs.alt}" />`
-      }
-    })
-    sections += `</section>`;
-  });
-
-  styles += `
-    .a11y-infographics{
-      --canvas-aspect-ratio: ${state.containerDesktop.width} / ${state.containerDesktop.height};
-      ${styleString(state.containerStyle)}
-    }
-
-    @media (max-width: 600px) {
-      --canvas-aspect-ratio: ${state.containerMobile.width} / ${state.containerMobile.height};
-    }
-
-    .a11y-infographics::before {
-      content: "";
-      display: block;
-      padding-bottom: calc(100% / (var(--canvas-aspect-ratio)));
-    }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-    .block {
-      --block-top: 0;
-      --block-bottom: 0;
-      --block-width: 0;
-      --block-height: 0;
-      top: var(--block-top);
-      left: var(--block-left);
-      width: var(--block-width);
-      height: var(--block-height);
-    }
-  `
-  
-  const rendered = `
-    <div class="a11y-infographics">
-      ${sections}
-    </div>
-    <style>
-      ${styles}
-    </style>
-    <script>
-      "use strict";
-      document.addEventListener("DOMContentLoaded", function () {
-        var imageObserver = new IntersectionObserver(function (entries, imgObserver) {
-          entries.forEach(function (entry) {
-            if (entry.isIntersecting) {
-              var lazyImage = entry.target;
-              console.log("lazy loading ", lazyImage);
-              lazyImage.src = lazyImage.dataset.src;
-              lazyImage.classList.remove("ai-lazy");
-              imgObserver.unobserve(lazyImage);
-            }
-          });
-        });
-        var arr = document.querySelectorAll('img.ai-lazy');
-        arr.forEach(function (v) {
-          imageObserver.observe(v);
-        });
-      });
-    </script>
-  `
-
-  console.log(rendered);
-}
