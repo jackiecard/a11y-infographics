@@ -28,7 +28,7 @@ export function render (state) {
           <${block.elemType} 
             class="${block.id}">
             ${block.value}
-          </${block.elemType} >`
+          </${block.elemType}>`
         }
         if (block.type === 'img') {
           sections += `

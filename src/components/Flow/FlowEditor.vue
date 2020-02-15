@@ -9,9 +9,10 @@
         @mouseover="mouseOverConfig = true" 
         @mouseout="mouseOverConfig = false">
         <input type="text" v-model="active.value" />
-        <input type="text" v-model="active.elemType" />
         <input type="text" v-model="active.style.backgroundColor" />
-        <input type="text" v-model="active.style.textAlign" />
+        <BlockTypeEdit v-model="active.style.fontFamily" :available-types="['Arial', 'Tahoma', 'Times New Roman']"/>
+        <BlockTextAlign v-model="active.style.textAlign"/>
+        <BlockTypeEdit v-model="active.elemType"/>
       </div>
     </Menu>
     <button @click="toggleCanvas()">{{this.showCanvas ? 'Structure' : 'Canvas'}} View</button>
@@ -89,6 +90,8 @@ import BlockElement from '../Editor/BlockElement'
 import Logo from '../Editor/Logo'
 import Menu from '../Editor/Menu'
 import { mapGetters, mapActions } from 'vuex'
+import BlockTypeEdit from '../Editor/BlockTypeEdit'
+import BlockTextAlign from '../Editor/BlockTextAlign'
 
 export default {
   name: 'FlowEditor',
@@ -96,7 +99,9 @@ export default {
     VueDraggableResizable,
     BlockElement,
     Logo,
-    Menu
+    Menu,
+    BlockTypeEdit,
+    BlockTextAlign
   },
   directives: {
     vClickOutside
